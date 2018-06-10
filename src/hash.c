@@ -44,6 +44,38 @@ unsigned int hashGenHashFunction(const void *key, int len) {
 }
 
 
+typedef void (* freeValCB) (void *);
+
+
+void
+hash_destroy(struct hash *hs ,freeValCB func){
+	struct dictEntry * dict;
+	struct dictEntry * next;
+	int index = 0;
+	if( func == NULL){
+		for( index = 0 ; index < hs->size; index++){
+			dict = hs->table[index];
+			while(dict != NULL){
+				next = dict->next;
+				FREE_ENTRY(dict);
+				dict = next;
+			}
+			hs->table[index] = NULL;
+		}
+			
+	} else {
+		for( index = 0 ; index < hs->size; index++){
+				dict = hs->table[index];
+				while(dict != NULL){
+					next = dict->next;
+					func(dict->val);
+					FREE_ENTRY(dict);	
+					dict = next;		
+				}
+				hs->table[index] = NULL;
+			}
+	}
+}
 
 struct hash *
 hash_init(struct hash * dict , int hash_node){
