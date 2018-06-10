@@ -4,7 +4,9 @@
 void func(void *a){
 	printf("func call:%s\n",(char*)a);
 }
-booltest_hash_destroy()
+
+int 
+test_hash_destroy()
 {
 	struct  hash hs;
 	hash_init(&hs,0);

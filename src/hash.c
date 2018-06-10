@@ -75,6 +75,7 @@ hash_destroy(struct hash *hs ,freeValCB func){
 				hs->table[index] = NULL;
 			}
 	}
+	FREE_HASH(hs);
 }
 
 struct hash *
