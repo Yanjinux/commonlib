@@ -30,7 +30,15 @@ int main()
 {
     struct hash h;
     hash_init(&h,0);
-
+	hash_add(&h, "/a/+/b", NULL);
+	dictEntry * dc = hash_find_reg(&h, "/a/b/c");
+	if(dc){
+		printf("/a/b/c in %s\n", dc->key);
+	}
+	dc = hash_find_reg(&h, "/c/b/c");
+	if(!dc){
+		printf("c/b/c not\n");
+	}
 	test_hash_destroy();
 
 }

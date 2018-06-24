@@ -223,6 +223,127 @@ hash_find(struct hash * dict , char * key){
 	return NULL;
 }
 
+int 
+hash_reg_match_mqtt(const char *sub, size_t sublen, const char *topic, size_t topiclen, bool *result)
+{
+        int spos, tpos;
+        bool multilevel_wildcard = false;
+
+        if(!result) return -1;
+        *result = false;
+
+        if(!sub || !topic){
+                return -1;
+        }
+
+        if(!sublen || !topiclen){
+                *result = false;
+                return -1;
+        }
+        /* ￥代表系统树*/
+        if(sublen && topiclen){
+                if((sub[0] == '$' && topic[0] != '$')
+                                || (topic[0] == '$' && sub[0] != '$')){
+
+                        return 0;
+                }
+        }
+
+        spos = 0;
+        tpos = 0;
+
+        while(spos < sublen && tpos <= topiclen){
+                if(sub[spos] == topic[tpos]){
+                        /* 处理 /http/#   and /http */
+                        if(tpos == topiclen-1){
+                                /* Check for e.g. foo matching foo/# */
+                                if(spos == sublen-3
+                                                && sub[spos+1] == '/'
+                                                && sub[spos+2] == '#'){
+                                        *result = true;
+                                        multilevel_wildcard = true;
+                                        return 0;
+                                }
+                        }
+                        spos++;
+                        tpos++;
+                        /* 处理完美匹配 */
+                        if(spos == sublen && tpos == topiclen){
+                                *result = true;
+                                return 0;
+                        }else if(tpos == topiclen && spos == sublen-1 && sub[spos] == '+'){
+                                if(spos > 0 && sub[spos-1] != '/'){
+                                        return -1;
+                                }
+                                spos++;
+                                *result = true;
+                                return 0;
+                        }
+                }else{
+                        if(sub[spos] == '+'){
+                                /* Check for bad "+foo" or "a/+foo" subscription */
+                                if(spos > 0 && sub[spos-1] != '/'){
+                                        return -1;
+                                }
+                                /* Check for bad "foo+" or "foo+/a" subscription */
+                                if(spos < sublen-1 && sub[spos+1] != '/'){
+                                        return -1;
+                                }
+                                spos++;
+                                while(tpos < topiclen && topic[tpos] != '/'){
+                                        tpos++;
+                                }
+                                if(tpos == topiclen && spos == sublen){
+                                        *result = true;
+                                        return 0;
+                                }
+                        }else if(sub[spos] == '#'){
+                                if(spos > 0 && sub[spos-1] != '/'){
+                                        return -1;
+                                }
+                                multilevel_wildcard = true;
+                                if(spos+1 != sublen){
+                                        return -1;
+                                }else{
+                                        *result = true;
+                                        return 0;
+                                }
+                        }else{
+                                /* Check for e.g. foo/bar matching foo/+/# */
+                                if(spos > 0
+                                                && spos+2 == sublen
+                                                && tpos == topiclen
+                                                && sub[spos-1] == '+'
+                                                && sub[spos] == '/'
+                                                && sub[spos+1] == '#')
+                                {
+                                        *result = true;
+                                        multilevel_wildcard = true;
+                                        return 0;
+                                }
+                                return 0;
+                        }
+                }
+        }
+        if(multilevel_wildcard == false && (tpos < topiclen || spos < sublen)){
+                *result = false;
+        }
+
+        return 0;
+}
+
+struct  dictEntry *
+hash_find_reg(struct hash *dict, char *key){
+	struct dictEntry * res = NULL;
+	bool flag = false;
+	HASH_FOR_EACH(res , dict){	
+		hash_reg_match_mqtt(res->key, strlen(res->key), key, strlen(key), &flag);
+		if(flag){
+			return res;
+		}
+	}
+	return NULL;
+}
 
 
 /*
