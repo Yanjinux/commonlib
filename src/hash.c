@@ -1,5 +1,5 @@
 #include "hash.h"
-
+#include <stdbool.h>
 unsigned int hashGenHashFunction(const void *key, int len) {
     /* 'm' and 'r' are mixing constants generated offline.
      They're not really 'magic', they just happen to work well.  */
@@ -44,7 +44,7 @@ unsigned int hashGenHashFunction(const void *key, int len) {
 }
 
 
-typedef void (* freeValCB) (void *);
+
 
 
 void

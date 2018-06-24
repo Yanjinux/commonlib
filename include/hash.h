@@ -20,12 +20,13 @@
 	}while(0) 
 
 #define FREE_HASH(hs) do{ \
-	free(hs->table);
-	hs->table = NULL；
+	free(hs->table);\
+	hs->table = NULL;\
 }while(0)
 
 static uint32_t dict_hash_function_seed = 5381;
 
+typedef void (* freeValCB) (void *);
 
 /* Unused arguments generate annoying warnings... */
 #define DICT_NOTUSED(V) ((void) V)
@@ -33,12 +34,7 @@ static uint32_t dict_hash_function_seed = 5381;
 #define HASH_FOR_EACH(dict,hash) \
 	for((dict = hash_first(hash)) ; dict != NULL ; dict = hash_next(hash,dict))
 
-/*
-	释放hash表的内存，调用后hash不能使用  
-	传入函数func 为释放val的函数 ， 可以不设置
-*/
-void
-hash_destroy(struct hash *hs ,freeValCB func);
+
 
 /*
  * 哈希表节点
@@ -72,6 +68,15 @@ typedef struct hash {
     unsigned long used;     //没有使用
 
 } hash;
+
+
+/*
+	释放hash表的内存，调用后hash不能使用  
+	传入函数func 为释放val的函数 ， 可以不设置
+*/
+void
+hash_destroy(struct hash *hs ,freeValCB func);
+
 
 /*
 	计算hash key
@@ -143,6 +148,8 @@ hash_find_data(struct hash * dict, char *key);
 */
 void
 hash_dump(struct hash * dict);
+struct  dictEntry *
+hash_find_reg(struct hash *dict, char *key);
 
 #endif /* __DICT_H */
 

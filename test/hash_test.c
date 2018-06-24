@@ -33,12 +33,16 @@ int main()
 	hash_add(&h, "/a/+/b", NULL);
 	dictEntry * dc = hash_find_reg(&h, "/a/b/c");
 	if(dc){
-		printf("/a/b/c in %s\n", dc->key);
+		printf("/a/b/c in %s\n", (char*)dc->key);
 	}
 	dc = hash_find_reg(&h, "/c/b/c");
 	if(!dc){
 		printf("c/b/c not\n");
 	}
-	test_hash_destroy();
+	dc = hash_find_reg(&h, "/a/h/b");
+	if(dc){
+		printf("/a/h/b in \n");
+	}
+
 
 }
